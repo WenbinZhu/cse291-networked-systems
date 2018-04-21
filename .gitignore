@@ -1,0 +1,10 @@
+out/
+.idea/
+build/
+cmake-build-debug/
+
+*.iml
+*.class
+*.o
+*.obj
+*.a
