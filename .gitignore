@@ -1,7 +1,10 @@
 out/
 .idea/
+*.dSYM/
 build/
 cmake-build-debug/
+
+CMakeLists.txt
 
 *.iml
 *.class
