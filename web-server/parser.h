@@ -27,7 +27,7 @@ class Parser {
 public:
     static bool parse_request(const string &message, http_request &request);
 
-    static void build_response_message(const http_response &response, string &resp_msg);
+    static void marshal_response(const http_response &response, string &resp_msg);
 };
 
 #endif // PARSER_H

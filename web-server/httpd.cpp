@@ -84,7 +84,7 @@ void handle_http_client(int clnt_sock, const string &doc_root) {
             string resp_msg;
             Parser::parse_request(msg, request);
             process_request(request, response);
-            Parser::build_response_message(response, resp_msg);
+            Parser::marshal_response(response, resp_msg);
             send_message(clnt_sock, resp_msg);
             // TODO: handle close conn
         }
