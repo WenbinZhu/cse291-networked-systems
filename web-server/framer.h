@@ -1,7 +1,6 @@
 #ifndef FRAMER_H
 #define FRAMER_H
 
-#include <stdio.h>
 #include <string>
 
 using std::string;

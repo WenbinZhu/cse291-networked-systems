@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <exception>
 #include "parser.h"
 #include "util.h"
 #include "framer.h"
@@ -13,7 +14,8 @@ void Parser::parse_request(const string &message, http_request &request) {
         // parse initial line
         std::vector<string> initial;
         split(lines.at(0), "\\ ", initial);
-        if (initial.size() != 3) throw;
+        if (initial.size() != 3)
+            throw std::invalid_argument("request initial line format error");
         request.method = initial[0];
         request.url = initial[1];
         request.version = initial[2];

@@ -174,7 +174,7 @@ bool send_message(int clnt_sock, const string &message) {
     const char *buf = message.c_str();
 
     while (msg_len > 0) {
-        ssize_t send_len = send(clnt_sock, buf, message.size(), 0);
+        ssize_t send_len = send(clnt_sock, buf, msg_len, 0);
         if (send_len > 0) {
             msg_len -= send_len;
             buf += send_len;

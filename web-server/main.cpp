@@ -6,13 +6,11 @@
 
 using namespace std;
 
-void usage(char * argv0)
-{
+void usage(char * argv0) {
 	cerr << "Usage: " << argv0 << " listen_port docroot_dir" << endl;
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	if (argc != 3) {
 		usage(argv[0]);
 		return 1;

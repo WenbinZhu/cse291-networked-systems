@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <ctime>
+#include <exception>
 #include <iostream>
 #include <sys/stat.h>
 #include "util.h"
@@ -23,13 +24,15 @@ void split(const string &s, const string &delim, vector<string> &tokens) {
 
 void split_header(const string &s, vector<string> &tokens) {
     size_t pos = s.find(':');
-    if (pos == string::npos) throw;
+    if (pos == string::npos)
+        throw std::invalid_argument("split_header() failed");
     tokens.push_back(s.substr(0, pos));
     tokens.push_back(s.substr(pos + 1, s.size() - pos - 1));
 }
 
 string strip(const string &s) {
-    if (s.empty()) throw;
+    if (s.empty())
+        throw std::invalid_argument("strip() failed");
 
     size_t i = 0, j = s.size() - 1;
     while (i <= j && isspace(s[i])) i++;
@@ -79,7 +82,7 @@ string get_content_type(const string &path) {
         return "text/plain";
 
     string ext = tokens[tokens.size() - 1];
-    if (ext == "html" || ext == "HTML")
+    if (ext == "html" || ext == "HTML" || ext == "htm" || ext == "HTM")
         return "text/html";
     if (ext == "png" || ext == "PNG")
         return "image/png";
