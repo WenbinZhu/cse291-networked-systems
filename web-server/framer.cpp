@@ -19,7 +19,7 @@ string Framer::top_message() const {
 }
 
 void Framer::pop_message() {
-    size_t pos = buffer.find(CRLF);
+    size_t pos = buffer.find(CRLF_CRLF);
 
     if (pos != string::npos) {
         buffer.erase(0, pos + CRLF_CRLF.size());

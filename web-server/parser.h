@@ -7,25 +7,27 @@
 using std::string;
 using std::unordered_map;
 
+typedef std::pair<int, string> http_status;
+
 struct http_request {
     bool valid;
     string method;
     string url;
     string version;
-    // no http body
+    // no request body in this project
     unordered_map<string, string> header;
 };
 
 struct http_response {
-    int status;
+    http_status status;
     string version;
-    string description;
+    string body;
     unordered_map<string, string> header;
 };
 
 class Parser {
 public:
-    static bool parse_request(const string &message, http_request &request);
+    static void parse_request(const string &message, http_request &request);
 
     static void marshal_response(const http_response &response, string &resp_msg);
 };
