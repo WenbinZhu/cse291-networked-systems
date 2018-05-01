@@ -11,5 +11,6 @@ CMakeLists.txt
 *.o
 *.obj
 *.a
+*.zip
 
 httpd
