@@ -1,0 +1,130 @@
+syntax = "proto3";
+
+package surfstore;
+
+service MetadataStore {
+    // A simple ping. Does not return anything.
+    // Use the status code of the RPC to check for success.
+    rpc Ping (Empty) returns (Empty) {}
+
+    // Read the requested file.
+    // The client only needs to supply the "filename" argument of FileInfo.
+    // The server only needs to fill the "version" and "blocklist" fields.
+    // If the file does not exist, "version" should be set to 0.
+	//
+    // This command should return an error if it is called on a server
+    // that is not the leader
+    rpc ReadFile (FileInfo) returns (FileInfo) {}
+
+    // Write a file.
+    // The client must specify all fields of the FileInfo message.
+    // The server returns the result of the operation in the "result" field.
+    //
+    // The server ALWAYS sets "current_version", regardless of whether
+    // the command was successful. If the write succeeded, it will be the
+    // version number provided by the client. Otherwise, it is set to the
+    // version number in the MetadataStore.
+    //
+    // If the result is MISSING_BLOCKS, "missing_blocks" contains a
+    // list of blocks that are not present in the BlockStore.
+    //
+    // This command should return an error if it is called on a server
+    // that is not the leader
+    rpc ModifyFile (FileInfo) returns (WriteResult) {}
+
+    // Delete a file.
+    // This has the same semantics as ModifyFile, except that both the
+    // client and server will not specify a blocklist or missing blocks.
+    // As in ModifyFile, this call should return an error if the server
+    // it is called on isn't the leader
+    rpc DeleteFile (FileInfo) returns (WriteResult) {}
+
+    // THE BELOW RPCs ARE FOR PART 2 ONLY!
+    // For part 1, do not even make a function to handle them.
+    // By default, this will make gRPC return an error.
+
+    // Query whether the MetadataStore server is currently the leader.
+    // This call should work even when the server is in a "crashed" state
+    rpc IsLeader (Empty) returns (SimpleAnswer) {}
+
+    // "Crash" the MetadataStore server.
+    // Until Restore() is called, the server should reply to all RPCs
+    // with an error (except Restore) and not send any RPCs to other servers.
+    rpc Crash(Empty) returns (Empty) {}
+
+    // "Restore" the MetadataStore server, allowing it to start
+    // sending and responding to all RPCs once again.
+    rpc Restore(Empty) returns (Empty) {}
+
+    // Find out if the node is crashed or not
+    // (should always work, even if the node is crashed)
+    rpc IsCrashed(Empty) returns (SimpleAnswer) {}
+
+	// Returns the current committed version of the requested file
+	// The argument's FileInfo only has the "filename" field defined
+	// The FileInfo returns the filename and version fields only
+	// This should return a result even if the follower is in a
+	//   crashed state
+	rpc GetVersion(FileInfo) returns (FileInfo) {}
+
+    // YOU CAN INSERT ADDITIONAL RPC CALLS HERE TO IMPLEMENT PART 2
+    // OF THE PROJECT, BUT PLEASE DON'T MODIFY THE ABOVE CALLS/ARGUMENTS
+}
+
+service BlockStore {
+    // A simple ping. Does not return anything.
+    // Use the status code of the RPC to check for success.
+    rpc Ping (Empty) returns (Empty) {}
+
+    // Store the block in storage.
+    // The client must fill both fields of the message.
+    rpc StoreBlock (Block) returns (Empty) {}
+
+    // Get a block in storage.
+    // The client only needs to supply the "hash" field.
+    // The server returns both the "hash" and "data" fields.
+    // If the block doesn't exist, "hash" will be the empty string.
+    // We will not call this rpc if the block doesn't exist (we'll always
+    // call "HasBlock()" first
+    rpc GetBlock (Block) returns (Block) {}
+
+    // Check whether a block is in storage.
+    // The client only needs to specify the "hash" field.
+    rpc HasBlock (Block) returns (SimpleAnswer) {}
+}
+
+// MESSAGES follow.  You may extend these data structures with additional fields,
+// but do not change the provided fields or their names.  You can also add additional
+// message definitions as you'd like.
+message Empty { }
+
+message FileInfo {
+    string filename = 1;
+    int32 version = 2;
+    repeated string blocklist = 3;
+}
+
+message Block {
+    string hash = 1;
+    bytes data = 2;
+}
+
+message WriteResult {
+    enum Result {
+        OK = 0;
+        OLD_VERSION = 1;
+        MISSING_BLOCKS = 2;
+        NOT_LEADER = 3;
+    }
+    Result result = 1;
+    int32 current_version = 2;
+    repeated string missing_blocks = 3;
+}
+
+message SimpleAnswer {
+    bool answer = 1;
+}
+
+message NodeList {
+    repeated int32 nodelist = 1;
+}
