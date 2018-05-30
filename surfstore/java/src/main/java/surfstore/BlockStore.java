@@ -2,9 +2,12 @@ package surfstore;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
+import com.google.protobuf.ByteString;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
@@ -86,6 +89,12 @@ public final class BlockStore {
     }
 
     static class BlockStoreImpl extends BlockStoreGrpc.BlockStoreImplBase {
+        private Map<String, byte[]> blockMap;
+
+        BlockStoreImpl() {
+            this.blockMap = new HashMap<>();
+        }
+
         @Override
         public void ping(Empty req, final StreamObserver<Empty> responseObserver) {
             Empty response = Empty.newBuilder().build();
@@ -93,6 +102,45 @@ public final class BlockStore {
             responseObserver.onCompleted();
         }
 
-        // TODO: Implement the other RPCs!
+        @Override
+        public void storeBlock(SurfStoreBasic.Block request, StreamObserver<Empty> responseObserver) {
+            synchronized (this) {
+                blockMap.put(request.getHash(), request.getData().toByteArray());
+            }
+            Empty response = Empty.newBuilder().build();
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        }
+
+        @Override
+        public void getBlock(SurfStoreBasic.Block request, StreamObserver<SurfStoreBasic.Block> responseObserver) {
+            SurfStoreBasic.Block.Builder builder = SurfStoreBasic.Block.newBuilder();
+            builder.setHash(request.getHash());
+
+            synchronized (this) {
+                byte[] data = blockMap.get(request.getHash());
+                if (data != null) {
+                    builder.setData(ByteString.copyFrom(data));
+                }
+            }
+
+            SurfStoreBasic.Block response = builder.build();
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        }
+
+        @Override
+        public void hasBlock(SurfStoreBasic.Block request, StreamObserver<SurfStoreBasic.SimpleAnswer> responseObserver) {
+            SurfStoreBasic.SimpleAnswer.Builder builder = SurfStoreBasic.SimpleAnswer.newBuilder();
+
+            synchronized (this) {
+                boolean answer = blockMap.containsKey(request.getHash());
+                builder.setAnswer(answer);
+            }
+
+            SurfStoreBasic.SimpleAnswer response = builder.build();
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        }
     }
 }

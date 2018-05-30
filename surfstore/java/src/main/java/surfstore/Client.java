@@ -1,15 +1,19 @@
 package surfstore;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
+import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
+
+import surfstore.SurfStoreBasic.Block;
 import surfstore.SurfStoreBasic.Empty;
 
 
@@ -40,15 +44,34 @@ public final class Client {
         metadataChannel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
         blockChannel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
     }
+
+    private Block stringToBlock(String s) {
+        Block.Builder builder = Block.newBuilder();
+
+        builder.setHash(BlockUtil.sha256(s));
+        builder.setData(ByteString.copyFrom(s, StandardCharsets.UTF_8));
+
+        return builder.build();
+    }
     
 	private void go() {
-		metadataStub.ping(Empty.newBuilder().build());
-        logger.info("Successfully pinged the Metadata server");
+        // metadataStub.ping(Empty.newBuilder().build());
+        // logger.info("Successfully pinged the Metadata server");
         
         blockStub.ping(Empty.newBuilder().build());
         logger.info("Successfully pinged the Blockstore server");
-        
-        // TODO: Implement your client here
+
+        Block b1 = stringToBlock("block_1");
+        Block b2 = stringToBlock("block_2");
+
+        System.out.println(blockStub.hasBlock(b1).getAnswer());
+        System.out.println(blockStub.hasBlock(b2).getAnswer());
+
+        blockStub.storeBlock(b1);
+        blockStub.storeBlock(b2);
+
+        System.out.println(blockStub.hasBlock(b1).getAnswer());
+        System.out.println(blockStub.hasBlock(b2).getAnswer());
 	}
 
 	/*
