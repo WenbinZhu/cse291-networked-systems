@@ -64,7 +64,7 @@ service MetadataStore {
 	// The argument's FileInfo only has the "filename" field defined
 	// The FileInfo returns the filename and version fields only
 	// This should return a result even if the follower is in a
-	//   crashed state
+	// crashed state
 	rpc GetVersion(FileInfo) returns (FileInfo) {}
 
     // YOU CAN INSERT ADDITIONAL RPC CALLS HERE TO IMPLEMENT PART 2
