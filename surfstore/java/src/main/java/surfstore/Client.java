@@ -131,7 +131,8 @@ public final class Client {
             return;
         }
 
-        if (response.getVersion() == 0 || response.getBlocklistList().isEmpty()) {
+        if (response.getVersion() == 0 || response.getBlocklistList().isEmpty() ||
+            response.getBlocklist(0).equals("0")) {
             System.out.println("Not Found");
             return;
         }
