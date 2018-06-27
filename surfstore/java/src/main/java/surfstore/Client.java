@@ -30,6 +30,7 @@ public final class Client {
 
     private final ManagedChannel blockChannel;
     private final BlockStoreGrpc.BlockStoreBlockingStub blockStub;
+    private MetadataStoreGrpc.MetadataStoreBlockingStub[] metaStubs;
 
     private final ConfigReader config;
 
@@ -42,6 +43,15 @@ public final class Client {
         this.blockChannel = ManagedChannelBuilder.forAddress("127.0.0.1", config.getBlockPort())
                 .usePlaintext(true).build();
         this.blockStub = BlockStoreGrpc.newBlockingStub(blockChannel);
+
+        this.metaStubs = new MetadataStoreGrpc.MetadataStoreBlockingStub[config.getNumMetadataServers() - 1];
+        for (int i = 1, j = 0; i <= config.getNumMetadataServers(); i++) {
+            if (i != leader) {
+                ManagedChannel mChannel = ManagedChannelBuilder.forAddress("127.0.0.1",
+                        config.getMetadataPort(i)).usePlaintext(true).build();
+                this.metaStubs[j++] = MetadataStoreGrpc.newBlockingStub(mChannel);
+            }
+        }
 
         this.config = config;
     }
@@ -114,6 +124,10 @@ public final class Client {
                     blockStub.storeBlock(blockMap.get(hash));
                 }
             }
+            if (response.getResult() == WriteResult.Result.ABORT) {
+                System.out.println("Abort");
+                return;
+            }
             if (response.getResult() == WriteResult.Result.OK) {
                 System.out.println("OK");
                 return;
@@ -170,6 +184,10 @@ public final class Client {
             System.out.println("Not Leader");
             return;
         }
+        if (response.getResult() == WriteResult.Result.ABORT) {
+            System.out.println("Abort");
+            return;
+        }
         while (response.getResult() == WriteResult.Result.OLD_VERSION) {
             builder.setVersion(++version);
             response = leaderStub.deleteFile(builder.build());
@@ -181,6 +199,10 @@ public final class Client {
     private synchronized void getVersion(String filename) {
         FileInfo request = FileInfo.newBuilder().setFilename(filename).build();
         System.out.println(leaderStub.getVersion(request).getVersion());
+
+        for (MetadataStoreGrpc.MetadataStoreBlockingStub follower : metaStubs) {
+            System.out.println(follower.getVersion(request).getVersion());
+        }
     }
 
     private static Namespace parseArgs(String[] args) {

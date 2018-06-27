@@ -67,8 +67,9 @@ service MetadataStore {
 	// crashed state
 	rpc GetVersion(FileInfo) returns (FileInfo) {}
 
-    // YOU CAN INSERT ADDITIONAL RPC CALLS HERE TO IMPLEMENT PART 2
-    // OF THE PROJECT, BUT PLEASE DON'T MODIFY THE ABOVE CALLS/ARGUMENTS
+    rpc Prepare(LogEntry) returns (SimpleAnswer) {}
+
+    rpc AppendEntries(LogEntries) returns (LogIndex) {}
 }
 
 service BlockStore {
@@ -115,6 +116,7 @@ message WriteResult {
         OLD_VERSION = 1;
         MISSING_BLOCKS = 2;
         NOT_LEADER = 3;
+        ABORT = 4;
     }
     Result result = 1;
     int32 current_version = 2;
@@ -128,3 +130,22 @@ message SimpleAnswer {
 message NodeList {
     repeated int32 nodelist = 1;
 }
+
+message LogEntry {
+    enum Command {
+        MODIFY = 0;
+        DELETE = 1;
+    }
+    int32 index = 1;
+    Command command = 2;
+    FileInfo request = 3;
+}
+
+message LogEntries {
+    repeated LogEntry enries = 2;
+}
+
+message LogIndex {
+    int32 index = 1;
+}
+
